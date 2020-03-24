@@ -1,0 +1,92 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/iconColor"
+    tools:context=".OtpVerificationActivity">
+
+    <ImageView
+        android:id="@+id/login_icon"
+        android:layout_width="match_parent"
+        android:layout_height="100dp"
+        android:src="@drawable/ic_message_black_24dp"
+        android:layout_centerInParent="true"
+        android:layout_above="@id/login_text1"
+        android:layout_marginBottom="50dp"/>
+
+    <TextView
+        android:id="@+id/login_text1"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Sit back and Relax! while we verify your mobile number"
+        android:layout_centerInParent="true"
+        android:textColor="#ffffff"
+        android:textSize="19dp"
+        android:layout_above="@id/login_text2"
+        android:layout_marginBottom="20dp"
+        android:layout_marginStart="40dp"
+        android:layout_marginEnd="40dp"
+        android:gravity="center"/>
+
+    <TextView
+        android:id="@+id/login_text2"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="(Enter the OTP below in case if we fail to detect the SMS automatically)"
+        android:layout_centerInParent="true"
+        android:textColor="#ffffff"
+        android:textSize="15dp"
+        android:gravity="center"
+        android:layout_marginBottom="30dp"
+        android:layout_marginStart="35dp"
+        android:layout_marginEnd="35dp"/>
+
+    <EditText
+        android:id="@+id/input_otp"
+        android:layout_width="150dp"
+        android:layout_height="wrap_content"
+        android:hint="Enter OTP"
+        android:maxLength="6"
+        android:gravity="center"
+        android:layout_below="@id/login_text2"
+        android:layout_centerInParent="true"
+        android:background="#ffffff"
+        android:padding="15dp" />
+
+    <TextView
+        android:id="@+id/text_resend"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_toEndOf="@id/input_otp"
+        android:layout_centerInParent="true"
+        android:layout_below="@id/login_text2"
+        android:layout_marginTop="10dp"
+        android:layout_marginStart="15dp"
+        android:textSize="17sp"
+        android:textColor="#ffffff"
+        android:text="Resend"
+        android:clickable="false"/>
+
+    <Button
+        android:id="@+id/otp_submit"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Submit"
+        android:layout_below="@id/input_otp"
+        android:layout_marginTop="30dp"
+        android:background="#ffffff"
+        android:layout_centerInParent="true" />
+
+    <TextView
+        android:id="@+id/text_wrong_number"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Wrong Number ?"
+        android:layout_below="@id/otp_submit"
+        android:layout_centerInParent="true"
+        android:layout_marginTop="25dp"
+        android:textSize="17sp"
+        android:textColor="#ffffff"/>
+
+</RelativeLayout>

@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/iconColor"
+    tools:context=".LoginActivity">
+
+
+    <ImageView
+        android:id="@+id/login_icon"
+        android:layout_width="match_parent"
+        android:layout_height="100dp"
+        android:src="@drawable/ic_message_black_24dp"
+        android:layout_centerInParent="true"
+        android:layout_above="@id/login_text"
+        android:layout_marginBottom="50dp"/>
+
+    <TextView
+        android:id="@+id/login_text"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Enter your mobile number to get started!"
+        android:layout_centerInParent="true"
+        android:textColor="#ffffff"
+        android:layout_above="@id/layout_edittext"
+        android:textSize="18dp"
+        android:layout_marginBottom="30dp"/>
+
+    <LinearLayout
+        android:id="@+id/layout_edittext"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:layout_centerInParent="true"
+        android:layout_marginBottom="10dp">
+
+        <EditText
+            android:id="@+id/input_country_code"
+            android:background="#ffffff"
+            android:layout_width="50dp"
+            android:maxLength="3"
+            android:inputType="number"
+            android:padding="10dp"
+            android:text="+91"
+            android:layout_marginStart="30dp"
+            android:layout_height="wrap_content" />
+
+        <EditText
+            android:id="@+id/input_number"
+            android:background="#ffffff"
+            android:padding="10dp"
+            android:maxLength="10"
+            android:inputType="number"
+            android:layout_marginStart="5dp"
+            android:layout_marginEnd="30dp"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="enter mobile number"/>
+
+    </LinearLayout>
+
+    <Button
+        android:id="@+id/login_next"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Next"
+        android:layout_below="@id/layout_edittext"
+        android:layout_marginTop="20dp"
+        android:background="#ffffff"
+        android:layout_centerInParent="true" />
+
+</RelativeLayout>

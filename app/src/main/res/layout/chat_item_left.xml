@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="300dp"
+    android:padding="5dp"
+    android:layout_height="wrap_content"
+    android:clickable="true"
+    android:focusable="true">
+
+    <TextView
+        android:id="@+id/show_time"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textSize="12sp"
+        android:layout_marginStart="2dp"
+        android:visibility="gone"/>
+
+    <RelativeLayout
+        android:id="@+id/show_message_layout"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/show_time"
+        android:padding="5dp"
+        android:background="@drawable/background_left">
+
+        <TextView
+            android:id="@+id/sender_number"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="+917746861342"
+            android:textStyle="bold"
+            android:layout_marginBottom="5dp"
+            android:visibility="gone"/>
+
+        <TextView
+            android:id="@+id/sender_name"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginEnd="2dp"
+            android:text="~rohit lovewanshi"
+            android:layout_marginStart="5dp"
+            android:layout_toEndOf="@id/sender_number"
+            android:visibility="gone"/>
+
+        <TextView
+            android:id="@+id/show_message"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="2dp"
+            android:textSize="18sp"
+            android:paddingEnd="8dp"
+            android:paddingStart="8dp"
+            android:text="hiiiiiiiiiiiiiiiiiiiiiiiii"
+            android:paddingBottom="5dp"
+            android:layout_below="@id/sender_number" />
+
+
+    </RelativeLayout>
+
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:id="@+id/txt_seen"
+        android:visibility="gone"
+        android:layout_below="@id/show_message_layout"/>
+
+</RelativeLayout>

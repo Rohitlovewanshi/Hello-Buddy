@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:padding="10dp"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:background="?android:attr/selectableItemBackground">
+
+    <de.hdodenhof.circleimageview.CircleImageView
+        android:id="@+id/profile_image"
+        android:layout_width="50dp"
+        android:layout_height="50dp"
+        android:layout_marginStart="5dp"
+        android:src="@drawable/ic_account_circle"/>
+
+    <TextView
+        android:id="@+id/username"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textColor="@android:color/black"
+        android:layout_toEndOf="@id/profile_image"
+        android:layout_marginStart="15dp"
+        android:textSize="18sp"
+        android:textStyle="bold"/>
+
+    <TextView
+        android:id="@+id/userstatusOrlastmessage"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_toEndOf="@id/profile_image"
+        android:layout_below="@id/username"
+        android:layout_marginStart="15dp"/>
+
+    <de.hdodenhof.circleimageview.CircleImageView
+        android:id="@+id/img_on"
+        android:layout_width="15dp"
+        android:layout_height="15dp"
+        app:civ_border_width="8dp"
+        app:civ_border_color="#05C70D"
+        android:layout_below="@id/userstatusOrlastmessage"
+        android:src="@mipmap/ic_launcher"
+        android:layout_marginTop="-8dp"
+        android:layout_marginStart="-18dp"
+        android:layout_toEndOf="@id/profile_image"
+        android:visibility="gone"/>
+
+    <de.hdodenhof.circleimageview.CircleImageView
+        android:id="@+id/img_off"
+        android:layout_width="15dp"
+        android:layout_height="15dp"
+        app:civ_border_width="8dp"
+        app:civ_border_color="#bfbfbf"
+        android:layout_below="@id/userstatusOrlastmessage"
+        android:src="@mipmap/ic_launcher"
+        android:layout_marginTop="-8dp"
+        android:layout_marginStart="-18dp"
+        android:layout_toEndOf="@id/profile_image"
+        android:visibility="gone"/>
+
+    <TextView
+        android:id="@+id/last_date"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginEnd="5dp"
+        android:layout_alignParentEnd="true"/>
+
+    <TextView
+        android:id="@+id/count_unseen_message"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentEnd="true"
+        android:gravity="center"
+        android:textSize="12sp"
+        android:layout_marginEnd="15dp"
+        android:layout_below="@id/last_date"
+        android:background="@drawable/circle"
+        android:paddingStart="3dp"
+        android:paddingEnd="3dp"
+        android:layout_marginTop="5dp"
+        android:visibility="gone"/>
+
+
+</RelativeLayout>
