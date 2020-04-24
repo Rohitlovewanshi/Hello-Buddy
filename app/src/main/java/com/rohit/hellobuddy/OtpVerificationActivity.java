@@ -65,6 +65,8 @@ public class OtpVerificationActivity extends AppCompatActivity {
         final Intent intent = getIntent();
         phoneNumber = intent.getStringExtra("mobileNumber");
 
+        textViewWrongNumber.setText("Wrong Number ? "+phoneNumber);
+
         loadingBar = new ProgressDialog(this);
 
         loadingBar.setTitle("Phone verification");

@@ -25,7 +25,6 @@ import android.view.MenuItem;
 import android.view.View;
 import android.widget.TextView;
 import android.widget.Toast;
-
 import com.google.android.material.tabs.TabLayout;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
@@ -39,7 +38,6 @@ import com.rohit.hellobuddy.Fragments.ChatsFragment;
 import com.rohit.hellobuddy.Fragments.GroupsFragment;
 import com.rohit.hellobuddy.model.User;
 import com.squareup.picasso.Picasso;
-
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;

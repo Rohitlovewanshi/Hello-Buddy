@@ -2,16 +2,12 @@ package com.rohit.hellobuddy.Fragments;
 
 
 import android.app.AlertDialog;
-import android.content.Context;
 import android.content.Intent;
-import android.content.SharedPreferences;
 import android.os.Bundle;
-
 import androidx.annotation.NonNull;
 import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
-
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.util.Log;
@@ -27,28 +23,21 @@ import android.widget.ProgressBar;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.Toast;
-
 import com.firebase.ui.database.FirebaseRecyclerAdapter;
 import com.firebase.ui.database.FirebaseRecyclerOptions;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.firebase.auth.FirebaseAuth;
-import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
-import com.google.firebase.database.Query;
 import com.google.firebase.database.ValueEventListener;
-import com.rohit.hellobuddy.Adapter.UserAdapter;
 import com.rohit.hellobuddy.MessageActivity;
 import com.rohit.hellobuddy.R;
 import com.rohit.hellobuddy.model.User;
 import com.squareup.picasso.Picasso;
-
-import java.util.ArrayList;
-import java.util.List;
 
 import de.hdodenhof.circleimageview.CircleImageView;
 
@@ -62,12 +51,10 @@ public class BuddiesFragment extends Fragment {
     private FirebaseAuth mAuth;
     private DatabaseReference buddyRef,userRef;
 
-    String currentUserID,currentUserName,currentUserPhone;
+    private String currentUserID,currentUserName,currentUserPhone;
 
-    EditText editTextSearch;
+    private EditText editTextSearch;
 
-    private UserAdapter userAdapter;
-    private List<User> mUsers;
 
     @Override
     public View onCreateView(LayoutInflater inflater, final ViewGroup container,
@@ -87,7 +74,6 @@ public class BuddiesFragment extends Fragment {
         buddyRef= FirebaseDatabase.getInstance().getReference().child("Buddies");
         userRef=FirebaseDatabase.getInstance().getReference().child("Users");
 
-        mUsers=new ArrayList<>();
 
         userRef.child(currentUserID).addValueEventListener(new ValueEventListener() {
             @Override
@@ -364,40 +350,83 @@ public class BuddiesFragment extends Fragment {
 
     private void searchUsers(String s) {
 
-        Query query=FirebaseDatabase.getInstance().getReference().child("Buddies").child(currentUserID).orderByChild("NameForSearch")
-                .startAt(s)
-                .endAt(s+"\uf8ff");
+        FirebaseRecyclerOptions options=new FirebaseRecyclerOptions.Builder<User>()
+                .setQuery(buddyRef.child(currentUserID).orderByChild("NameForSearch").startAt(s).endAt(s+"\uf8ff"),User.class)
+                .build();
 
-        query.addValueEventListener(new ValueEventListener() {
+        FirebaseRecyclerAdapter<User,ViewHolder>adapter=new FirebaseRecyclerAdapter<User, ViewHolder>(options) {
             @Override
-            public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
-                mUsers.clear();
-                for(DataSnapshot snapshot : dataSnapshot.getChildren()){
+            protected void onBindViewHolder(@NonNull final ViewHolder holder, int position, @NonNull User user) {
 
-                    userRef.child(snapshot.getKey()).addListenerForSingleValueEvent(new ValueEventListener() {
-                        @Override
-                        public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                final String usersIDs=getRef(position).getKey();
 
-                            User user=dataSnapshot.getValue(User.class);
-                            mUsers.add(user);
+                userRef.child(usersIDs).addValueEventListener(new ValueEventListener() {
+                    @Override
+                    public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+
+                        if (dataSnapshot.exists()) {
+
+                            String retName=dataSnapshot.child("name").getValue().toString();
+                            String retImage=dataSnapshot.child("image").getValue().toString();
+                            String retStatus=dataSnapshot.child("status").getValue().toString();
+
+                            holder.userName.setText(retName);
+                            if (!retImage.equals("default")) {
+                                Picasso.get().load(retImage).placeholder(R.drawable.ic_account_circle).into(holder.profileImage);
+                            }
+
+                            holder.userStatus.setText(retStatus);
+                            holder.img_on.setVisibility(View.GONE);
+                            holder.img_off.setVisibility(View.GONE);
+
+                            holder.itemView.setOnClickListener(new View.OnClickListener() {
+                                @Override
+                                public void onClick(View v) {
+                                    Intent intent=new Intent(getContext(), MessageActivity.class);
+                                    intent.putExtra("id",usersIDs);
+                                    startActivity(intent);
+                                }
+                            });
                         }
+                    }
 
-                        @Override
-                        public void onCancelled(@NonNull DatabaseError databaseError) {
+                    @Override
+                    public void onCancelled(@NonNull DatabaseError databaseError) {
 
-                        }
-                    });
-                }
+                    }
+                });
 
-                userAdapter=new UserAdapter(getContext(),mUsers,false);
-                myBuddyList.setAdapter(userAdapter);
             }
 
+            @NonNull
             @Override
-            public void onCancelled(@NonNull DatabaseError databaseError) {
-
+            public ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
+                View view= LayoutInflater.from(parent.getContext()).inflate(R.layout.buddies_display_layout,parent,false);
+                return new ViewHolder(view);
             }
-        });
+        };
+
+        myBuddyList.setAdapter(adapter);
+        adapter.startListening();
+
+    }
+
+    public class ViewHolder extends RecyclerView.ViewHolder{
+
+        TextView userName,userStatus,textViewLastDate,textViewCountUnseenMsg;
+        CircleImageView profileImage,img_on,img_off;
+
+        public ViewHolder(View itemView){
+            super(itemView);
+
+            userName=itemView.findViewById(R.id.username);
+            userStatus=itemView.findViewById(R.id.userstatusOrlastmessage);
+            profileImage=itemView.findViewById(R.id.profile_image);
+            textViewLastDate=itemView.findViewById(R.id.last_date);
+            textViewCountUnseenMsg=itemView.findViewById(R.id.count_unseen_message);
+            img_on=itemView.findViewById(R.id.img_on);
+            img_off=itemView.findViewById(R.id.img_off);
+        }
     }
 
 }

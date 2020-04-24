@@ -9,7 +9,7 @@ public class User {
     public User() {
     }
 
-    public User(String name, String uid, String status, String phone, String image, String currentStatus, String lastSeenDate, String nameForSearch, boolean isSelected) {
+    public User(String name, String uid, String status, String phone, String image, String currentStatus, String lastSeenDate, String NameForSearch,boolean isSelected) {
         this.name = name;
         this.uid = uid;
         this.status = status;
@@ -17,7 +17,7 @@ public class User {
         this.image = image;
         this.currentStatus = currentStatus;
         this.lastSeenDate = lastSeenDate;
-        this.NameForSearch = nameForSearch;
+        this.NameForSearch = NameForSearch;
         this.isSelected = isSelected;
     }
 
@@ -82,7 +82,7 @@ public class User {
     }
 
     public void setNameForSearch(String nameForSearch) {
-        this.NameForSearch = nameForSearch;
+        NameForSearch = nameForSearch;
     }
 
     public boolean isSelected() {

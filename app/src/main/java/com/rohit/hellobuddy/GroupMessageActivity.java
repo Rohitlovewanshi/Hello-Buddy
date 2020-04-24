@@ -2,9 +2,6 @@ package com.rohit.hellobuddy;
 
 import android.content.Intent;
 import android.os.Bundle;
-import android.text.Editable;
-import android.text.TextWatcher;
-import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -12,6 +9,7 @@ import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.ProgressBar;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
@@ -19,6 +17,8 @@ import androidx.appcompat.widget.Toolbar;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.DataSnapshot;
@@ -55,10 +55,8 @@ public class GroupMessageActivity extends AppCompatActivity {
     Intent intent;
     String groupId;
 
-    ValueEventListener seenListener,deleteListener;
-
     FirebaseUser fuser;
-    DatabaseReference reference;
+    DatabaseReference reference,rootRef;
 
     List<GroupChat> mChat;
 
@@ -92,6 +90,7 @@ public class GroupMessageActivity extends AppCompatActivity {
         progressBar=findViewById(R.id.progressbar);
 
         fuser= FirebaseAuth.getInstance().getCurrentUser();
+        rootRef=FirebaseDatabase.getInstance().getReference();
 
         intent=getIntent();
 
@@ -102,14 +101,18 @@ public class GroupMessageActivity extends AppCompatActivity {
         profile_image.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-
+                Intent groupViewIntent=new Intent(GroupMessageActivity.this,GroupProfileView.class);
+                groupViewIntent.putExtra("id",groupId);
+                startActivity(groupViewIntent);
             }
         });
 
         username.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-
+                Intent groupViewIntent=new Intent(GroupMessageActivity.this,GroupProfileView.class);
+                groupViewIntent.putExtra("id",groupId);
+                startActivity(groupViewIntent);
             }
         });
 
@@ -129,7 +132,7 @@ public class GroupMessageActivity extends AppCompatActivity {
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
-        getMenuInflater().inflate(R.menu.chat_menu,menu);
+        getMenuInflater().inflate(R.menu.group_menu,menu);
         return true;
     }
 
@@ -137,7 +140,27 @@ public class GroupMessageActivity extends AppCompatActivity {
     public boolean onOptionsItemSelected(@NonNull MenuItem item) {
         switch (item.getItemId()){
 
-            case R.id.clear_conversation:
+            case R.id.add_contacts:
+                Intent AddContactIntent=new Intent(GroupMessageActivity.this,AddParticipants.class);
+                AddContactIntent.putExtra("status","old");
+                AddContactIntent.putExtra("groupID",groupId);
+                AddContactIntent.putExtra("groupName",username.getText().toString());
+                startActivity(AddContactIntent);
+                break;
+
+            case R.id.exit_group:
+                rootRef.child("GroupChatList").child(fuser.getUid()).child(groupId).removeValue().addOnCompleteListener(new OnCompleteListener<Void>() {
+                    @Override
+                    public void onComplete(@NonNull Task<Void> task) {
+                        if (task.isSuccessful()){
+                            startActivity(new Intent(GroupMessageActivity.this,MainActivity.class));
+                        }
+                        else {
+                            Toast.makeText(GroupMessageActivity.this, task.getException().getMessage(), Toast.LENGTH_SHORT).show();
+                        }
+                    }
+                });
+                break;
 
         }
 
@@ -261,10 +284,10 @@ public class GroupMessageActivity extends AppCompatActivity {
 
                 if (group.getImage().equals("default")){
 
-                    profile_image.setImageResource(R.drawable.ic_group_black_24dp);
+                    profile_image.setImageResource(R.drawable.group_icon);
                 }
                 else{
-                    Picasso.get().load(group.getImage()).placeholder(R.drawable.ic_group_black_24dp).into(profile_image);
+                    Picasso.get().load(group.getImage()).placeholder(R.drawable.group_icon).into(profile_image);
                 }
             }
 

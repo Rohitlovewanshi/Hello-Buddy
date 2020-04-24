@@ -3,15 +3,9 @@ package com.rohit.hellobuddy;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
-import androidx.core.app.ActivityCompat;
-import androidx.core.content.ContextCompat;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
-
-import android.Manifest;
 import android.content.Intent;
-import android.content.SharedPreferences;
-import android.content.pm.PackageManager;
 import android.os.Bundle;
 import android.text.Editable;
 import android.text.TextWatcher;
@@ -21,11 +15,8 @@ import android.view.MenuItem;
 import android.view.View;
 import android.widget.EditText;
 import android.widget.ImageButton;
-import android.widget.LinearLayout;
 import android.widget.ProgressBar;
 import android.widget.TextView;
-import android.widget.Toast;
-
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.FirebaseAuth;
@@ -35,21 +26,13 @@ import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
-import com.rohit.hellobuddy.Adapter.GroupMessageAdapter;
 import com.rohit.hellobuddy.Adapter.MessageAdapter;
 import com.rohit.hellobuddy.model.Chat;
-import com.rohit.hellobuddy.model.Group;
-import com.rohit.hellobuddy.model.GroupChat;
 import com.rohit.hellobuddy.model.User;
 import com.squareup.picasso.Picasso;
-
-import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
-import java.util.Calendar;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
@@ -71,7 +54,7 @@ public class MessageActivity extends AppCompatActivity {
     Intent intent;
     String userid;
 
-    ValueEventListener seenListener,deleteListener;
+    ValueEventListener seenListener;
 
     FirebaseUser fuser;
     DatabaseReference reference,userRef,chatRef,chatListRef;
@@ -118,9 +101,10 @@ public class MessageActivity extends AppCompatActivity {
 
         userid=intent.getStringExtra("id");
 
-        userRef.child(fuser.getUid()).addListenerForSingleValueEvent(new ValueEventListener() {
+        userRef.child(fuser.getUid()).addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+
                 currentUserName=dataSnapshot.child("name").getValue().toString();
             }
 
@@ -130,8 +114,21 @@ public class MessageActivity extends AppCompatActivity {
             }
         });
 
+        reference=chatListRef.child(userid).child(fuser.getUid());
+        seenListener=reference.addValueEventListener(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                chatListRef.child(userid).child(fuser.getUid()).child("messageSeen").setValue("true");
+                chatListRef.child(userid).child(fuser.getUid()).child("unseenMsgCount").setValue("0");
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError databaseError) {
+
+            }
+        });
+
         readUserInfo();
-        seenMessage(userid);
 
         profile_image.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -210,9 +207,41 @@ public class MessageActivity extends AppCompatActivity {
 
                 progressBar.setVisibility(View.VISIBLE);
 
-                final DatabaseReference chatsRef = FirebaseDatabase.getInstance().getReference().child("Chats").child(fuser.getUid());
+                final DatabaseReference chatsRef = FirebaseDatabase.getInstance().getReference().child("Chats");
 
-                deleteListener = chatsRef.addValueEventListener(new ValueEventListener() {
+                chatsRef.child(fuser.getUid()).addListenerForSingleValueEvent(new ValueEventListener() {
+                    @Override
+                    public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+
+                        for (DataSnapshot snapshot : dataSnapshot.getChildren()) {
+
+                            Chat chat = snapshot.getValue(Chat.class);
+
+                            if (chat.getReceiver().equals(fuser.getUid()) && chat.getSender().equals(userid) ||
+                                    chat.getReceiver().equals(userid) && chat.getSender().equals(fuser.getUid())) {
+
+                                progressBar.setVisibility(View.VISIBLE);
+
+                                chatsRef.child(snapshot.getKey()).removeValue().addOnCompleteListener(new OnCompleteListener<Void>() {
+                                    @Override
+                                    public void onComplete(@NonNull Task<Void> task) {
+                                        progressBar.setVisibility(View.GONE);
+                                        if (!task.isSuccessful()) {
+                                            Log.i("DeleteError", task.getException().getMessage());
+                                        }
+                                    }
+                                });
+                            }
+                        }
+                    }
+
+                    @Override
+                    public void onCancelled(@NonNull DatabaseError databaseError) {
+
+                    }
+                });
+
+                chatsRef.child(userid).addListenerForSingleValueEvent(new ValueEventListener() {
                     @Override
                     public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
 
@@ -253,8 +282,19 @@ public class MessageActivity extends AppCompatActivity {
                         if (!task.isSuccessful()) {
                             Log.i("DeleteError", task.getException().getMessage());
                         } else {
-                            chatsRef.removeEventListener(deleteListener);
-                            startActivity(new Intent(MessageActivity.this, MainActivity.class).setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP));
+                            progressBar.setVisibility(View.VISIBLE);
+
+                            FirebaseDatabase.getInstance().getReference().child("ChatList").child(userid).child(fuser.getUid()).removeValue().addOnCompleteListener(new OnCompleteListener<Void>() {
+                                @Override
+                                public void onComplete(@NonNull Task<Void> task) {
+                                    progressBar.setVisibility(View.GONE);
+                                    if (!task.isSuccessful()) {
+                                        Log.i("DeleteError", task.getException().getMessage());
+                                    } else {
+                                        startActivity(new Intent(MessageActivity.this, MainActivity.class).setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP));
+                                    }
+                                }
+                            });
                         }
                     }
                 });
@@ -263,7 +303,7 @@ public class MessageActivity extends AppCompatActivity {
         return false;
     }
 
-    private void sendMessage(String sender, String receiver, String message) {
+    private void sendMessage(final String sender, final String receiver, String message) {
 
         SimpleDateFormat sdf=new SimpleDateFormat("dd/MM/yyyy HH:mm:ss", Locale.getDefault());
 
@@ -271,12 +311,37 @@ public class MessageActivity extends AppCompatActivity {
 
         final long timeInMillis=ConvertDateTimeIntoMilis(currentDateTime);
 
+        chatListRef.child(sender).child(receiver).child("lastMessage").setValue(message);
+        chatListRef.child(receiver).child(sender).child("lastMessage").setValue(message);
+        chatListRef.child(sender).child(receiver).child("lastMessageDate").setValue(timeInMillis+"");
+        chatListRef.child(receiver).child(sender).child("lastMessageDate").setValue(timeInMillis+"");
+        chatListRef.child(sender).child(receiver).child("messageSeen").setValue("false");
+
+        chatListRef.child(sender).child(receiver).child("unseenMsgCount").addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+
+                if (!dataSnapshot.exists()){
+                    chatListRef.child(sender).child(receiver).child("unseenMsgCount").setValue("1");
+                }
+                else {
+                    String total=dataSnapshot.getValue().toString();
+                    int temp=Integer.parseInt(total)+1;
+                    chatListRef.child(sender).child(receiver).child("unseenMsgCount").setValue(String.valueOf(temp));
+                }
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError databaseError) {
+
+            }
+        });
+
         HashMap<String,Object>hashMap=new HashMap<>();
         hashMap.put("sender",sender);
         hashMap.put("receiver",receiver);
         hashMap.put("message",message);
         hashMap.put("date",timeInMillis+"");
-        hashMap.put("isseen",false);
 
         chatRef.child(sender).push().setValue(hashMap);
         chatRef.child(receiver).push().setValue(hashMap);
@@ -307,28 +372,6 @@ public class MessageActivity extends AppCompatActivity {
 
                 }
                 chatListRef.child(userid).child(fuser.getUid()).child("date").setValue(timeInMillis+"");
-            }
-
-            @Override
-            public void onCancelled(@NonNull DatabaseError databaseError) {
-
-            }
-        });
-    }
-
-    private void seenMessage(final String userid){
-        reference=FirebaseDatabase.getInstance().getReference().child("Chats").child(fuser.getUid());
-        seenListener=reference.addValueEventListener(new ValueEventListener() {
-            @Override
-            public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
-                for(DataSnapshot snapshot : dataSnapshot.getChildren()){
-                    Chat chat=snapshot.getValue(Chat.class);
-                    if(chat.getReceiver().equals(fuser.getUid()) && chat.getSender().equals(userid)){
-                        HashMap<String,Object> hashMap=new HashMap<>();
-                        hashMap.put("isseen",true);
-                        snapshot.getRef().updateChildren(hashMap);
-                    }
-                }
             }
 
             @Override
@@ -407,6 +450,7 @@ public class MessageActivity extends AppCompatActivity {
         super.onPause();
 
         reference.removeEventListener(seenListener);
+
         status("offline");
     }
 
@@ -417,12 +461,13 @@ public class MessageActivity extends AppCompatActivity {
             public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
 
                 User user=dataSnapshot.getValue(User.class);
+
                 userNameForSearch=user.getName();
 
                 username.setText(userNameForSearch);
 
                 if (!user.getImage().equals("default")) {
-                   // Picasso.get().load(user.getImage()).placeholder(R.drawable.ic_account_circle).into(profile_image);
+                   Picasso.get().load(user.getImage()).placeholder(R.drawable.ic_account_circle).into(profile_image);
                 }
 
                 if (user.getCurrentStatus().equals("online")){

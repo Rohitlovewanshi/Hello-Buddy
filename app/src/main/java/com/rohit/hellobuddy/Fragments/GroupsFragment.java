@@ -68,7 +68,11 @@ public class GroupsFragment extends Fragment {
             @Override
             public void onClick(View v) {
 
-                startActivity(new Intent(getContext(), AddParticipants.class));
+                Intent AddContactIntent =new Intent(getContext(),AddParticipants.class);
+                AddContactIntent.putExtra("status","new");
+                AddContactIntent.putExtra("groupID","new");
+                AddContactIntent.putExtra("groupName","new");
+                startActivity(AddContactIntent);
             }
         });
 
@@ -104,18 +108,9 @@ public class GroupsFragment extends Fragment {
 
         FirebaseRecyclerOptions options;
 
-        if (s.equals("")){
-
-            options=new FirebaseRecyclerOptions.Builder<Group>()
-                    .setQuery(rootRef.child("GroupChatList").child(currentUserId).orderByChild("date"),Group.class)
-                    .build();
-        }
-        else{
-
-            options=new FirebaseRecyclerOptions.Builder<Group>()
-                    .setQuery(rootRef.child("GroupChatList").child(currentUserId).orderByChild("name").startAt(s).endAt(s+"\uf8ff"),Group.class)
-                    .build();
-        }
+        options=new FirebaseRecyclerOptions.Builder<Group>()
+                .setQuery(rootRef.child("GroupChatList").child(currentUserId).orderByChild("name").startAt(s).endAt(s+"\uf8ff"),Group.class)
+                .build();
 
         FirebaseRecyclerAdapter<Group, GroupViewHolder> adapter=new FirebaseRecyclerAdapter<Group, GroupViewHolder>(options) {
             @Override
@@ -134,10 +129,10 @@ public class GroupsFragment extends Fragment {
 
                         if (group1.getImage().equals("default")){
 
-                            groupViewHolder.groupImage.setImageResource(R.drawable.ic_group_black_24dp);
+                            groupViewHolder.groupImage.setImageResource(R.drawable.group_icon);
                         }
                         else{
-                            Picasso.get().load(group1.getImage()).placeholder(R.drawable.ic_group_black_24dp).into(groupViewHolder.groupImage);
+                            Picasso.get().load(group1.getImage()).placeholder(R.drawable.group_icon).into(groupViewHolder.groupImage);
                         }
 
                         groupViewHolder.itemView.setOnClickListener(new View.OnClickListener() {

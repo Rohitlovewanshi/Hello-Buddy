@@ -16,12 +16,14 @@
         android:fullBackupContent="true"
         android:icon="@mipmap/ic_launcher"
         android:label="@string/app_name"
+        android:largeHeap="true"
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
-        android:largeHeap="true"
         android:theme="@style/AppTheme">
-        <activity android:name=".AddParticipants"/>
-        <activity android:name=".GroupMessageActivity"/>
+        <activity android:name=".ViewGroupParticipants"></activity>
+        <activity android:name=".GroupProfileView" />
+        <activity android:name=".AddParticipants" />
+        <activity android:name=".GroupMessageActivity" />
         <activity android:name=".ProfileView" />
         <activity android:name=".MessageActivity" />
         <activity android:name=".ProfileSetting" />
@@ -30,7 +32,7 @@
         <activity android:name=".LoginActivity" />
         <activity
             android:name=".SplashScreenActivity"
-            android:screenOrientation="portrait">
+            android:screenOrientation="fullSensor">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <action android:name="android.intent.action.VIEW" />

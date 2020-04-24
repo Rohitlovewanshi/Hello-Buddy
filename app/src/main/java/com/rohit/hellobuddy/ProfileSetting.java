@@ -8,8 +8,10 @@ import androidx.appcompat.widget.Toolbar;
 import android.app.ProgressDialog;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.graphics.Bitmap;
 import android.net.Uri;
 import android.os.Bundle;
+import android.provider.MediaStore;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
@@ -37,6 +39,8 @@ import com.squareup.picasso.Picasso;
 import com.theartofdev.edmodo.cropper.CropImage;
 import com.theartofdev.edmodo.cropper.CropImageView;
 
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.HashMap;
@@ -167,6 +171,7 @@ public class ProfileSetting extends AppCompatActivity {
 
     @Override
     protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
+
         super.onActivityResult(requestCode, resultCode, data);
 
         if(requestCode==CropImage.CROP_IMAGE_ACTIVITY_REQUEST_CODE){
@@ -174,16 +179,27 @@ public class ProfileSetting extends AppCompatActivity {
 
             if (resultCode==RESULT_OK){
 
+                Uri resultUri=result.getUri();
+
+                Bitmap bmp=null;
+                try {
+                    bmp=MediaStore.Images.Media.getBitmap(getContentResolver(),resultUri);
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+                ByteArrayOutputStream baos=new ByteArrayOutputStream();
+
+                bmp.compress(Bitmap.CompressFormat.JPEG,25,baos);
+                byte[] fileInBytes=baos.toByteArray();
+
                 loadingBar.setTitle("Set Profile Image");
                 loadingBar.setMessage("Please wait, your profile is updating...");
                 loadingBar.setCanceledOnTouchOutside(false);
                 loadingBar.show();
 
-                Uri resultUri=result.getUri();
-
                 final StorageReference filePath=UserProfileImagesRef.child(currentUserID + ".jpg");
 
-                uploadTask=filePath.putFile(resultUri);
+                uploadTask=filePath.putBytes(fileInBytes);
                 uploadTask.continueWithTask(new Continuation<UploadTask.TaskSnapshot, Task<Uri>>() {
                     @Override
                     public Task<Uri> then(@NonNull Task<UploadTask.TaskSnapshot> task) throws Exception {

@@ -71,7 +71,9 @@ public class AddParticipants extends AppCompatActivity {
     HashMap<String,String>hashMapContacts=new HashMap<>();
 
     ProgressDialog loadingBar;
-    StorageTask uploadTask;
+
+    Intent intent;
+    String groupIDByIntent,statusByIntent,groupNameByIntent;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -98,6 +100,11 @@ public class AddParticipants extends AppCompatActivity {
         LinearLayoutManager linearLayoutManager=new LinearLayoutManager(AddParticipants.this);
         recyclerView.setLayoutManager(linearLayoutManager);
 
+        intent=getIntent();
+        statusByIntent=intent.getStringExtra("status");
+        groupIDByIntent=intent.getStringExtra("groupID");
+        groupNameByIntent=intent.getStringExtra("groupName");
+
         currentUserID = FirebaseAuth.getInstance().getCurrentUser().getUid();
         buddyRef = FirebaseDatabase.getInstance().getReference().child("Buddies").child(currentUserID);
         userRef=FirebaseDatabase.getInstance().getReference().child("Users");
@@ -107,95 +114,125 @@ public class AddParticipants extends AppCompatActivity {
             @Override
             public void onClick(View v) {
 
-                final AlertDialog dialog=new AlertDialog.Builder(AddParticipants.this).create();
-                final LayoutInflater inflater=getLayoutInflater();
-                View dialogView=inflater.inflate(R.layout.dialog_for_add_groups,null);
+                if (statusByIntent.equals("new")) {
 
-                final EditText editTextGroupName=dialogView.findViewById(R.id.input_group_name);
-                final EditText editTextGroupStatus=dialogView.findViewById(R.id.input_group_status);
-                Button submit_btn=dialogView.findViewById(R.id.submit_btn);
-                final ProgressBar progressBar=dialogView.findViewById(R.id.progressbar);
+                    final AlertDialog dialog = new AlertDialog.Builder(AddParticipants.this).create();
+                    final LayoutInflater inflater = getLayoutInflater();
+                    View dialogView = inflater.inflate(R.layout.dialog_for_add_groups, null);
 
-                submit_btn.setOnClickListener(new View.OnClickListener() {
-                    @Override
-                    public void onClick(View v) {
+                    final EditText editTextGroupName = dialogView.findViewById(R.id.input_group_name);
+                    final EditText editTextGroupStatus = dialogView.findViewById(R.id.input_group_status);
+                    Button submit_btn = dialogView.findViewById(R.id.submit_btn);
+                    final ProgressBar progressBar = dialogView.findViewById(R.id.progressbar);
 
-                        final String groupName=editTextGroupName.getText().toString();
-                        String groupStatus=editTextGroupStatus.getText().toString();
+                    submit_btn.setOnClickListener(new View.OnClickListener() {
+                        @Override
+                        public void onClick(View v) {
 
-                        if (groupName.isEmpty()){
+                            final String groupName = editTextGroupName.getText().toString();
+                            String groupStatus = editTextGroupStatus.getText().toString();
 
-                            editTextGroupName.setError("Field is empty");
-                            editTextGroupName.requestFocus();
-                            return;
-                        }
+                            if (groupName.isEmpty()) {
 
-                        if (groupStatus.isEmpty()){
-                            editTextGroupStatus.setError("Field is empty");
-                            editTextGroupStatus.requestFocus();
-                            return;
-                        }
-
-                        progressBar.setVisibility(View.VISIBLE);
-
-                        SimpleDateFormat sdf=new SimpleDateFormat("dd/MM/yyyy HH:mm:ss", Locale.getDefault());
-                        String currentDateTime=sdf.format(new Date());
-
-                        long dateTimeInMillis=ConvertDateTimeIntoMilis(currentDateTime);
-
-                        final String groupkey=rootRef.child("Groups").push().getKey();
-
-                        HashMap<String,String>hashMap=new HashMap<>();
-                        hashMap.put("id",groupkey);
-                        hashMap.put("name",groupName);
-                        hashMap.put("status",groupStatus);
-                        hashMap.put("image","default");
-                        hashMap.put("date",dateTimeInMillis+"");
-
-                        rootRef.child("Groups").child(groupkey).setValue(hashMap).addOnCompleteListener(new OnCompleteListener<Void>() {
-                            @Override
-                            public void onComplete(@NonNull Task<Void> task) {
-                                progressBar.setVisibility(View.GONE);
-
-                                if (task.isSuccessful()){
-
-                                    rootRef.child("GroupChatList").child(currentUserID).child(groupkey).child("name").setValue(groupName);
-
-                                    HashMap<String,Object>hashMap2=new HashMap<>();
-
-                                    hashMap2.put("sender","default");
-                                    hashMap2.put("message","default");
-                                    hashMap2.put("date","default");
-
-                                    rootRef.child("GroupChats").child(groupkey).child(currentUserID).push().setValue(hashMap2);
-
-                                    for (Map.Entry mapElement : hashMapContacts.entrySet()){
-                                        String key=(String)mapElement.getKey();
-                                        String value=(String)mapElement.getValue();
-
-                                        if (value.equals("true")){
-
-                                            rootRef.child("GroupChatList").child(key).child(groupkey).child("name").setValue(groupName);
-                                            rootRef.child("GroupChats").child(groupkey).child(key).push().setValue(hashMap2);
-                                        }
-                                    }
-                                    Toast.makeText(getApplicationContext(),"Success",Toast.LENGTH_SHORT).show();
-                                    dialog.dismiss();
-                                }
-                                else{
-                                    Toast.makeText(getApplicationContext(),task.getException().getMessage(),Toast.LENGTH_SHORT).show();
-                                    Log.i("Error",task.getException().getMessage());
-                                    return;
-                                }
+                                editTextGroupName.setError("Field is empty");
+                                editTextGroupName.requestFocus();
+                                return;
                             }
-                        });
+
+                            if (groupStatus.isEmpty()) {
+                                editTextGroupStatus.setError("Field is empty");
+                                editTextGroupStatus.requestFocus();
+                                return;
+                            }
+
+                            progressBar.setVisibility(View.VISIBLE);
+
+                            SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy HH:mm:ss", Locale.getDefault());
+                            String currentDateTime = sdf.format(new Date());
+
+                            long dateTimeInMillis = ConvertDateTimeIntoMilis(currentDateTime);
+
+                            final String groupkey = rootRef.child("Groups").push().getKey();
+
+                            HashMap<String, String> hashMap = new HashMap<>();
+                            hashMap.put("id", groupkey);
+                            hashMap.put("name", groupName);
+                            hashMap.put("status", groupStatus);
+                            hashMap.put("image", "default");
+                            hashMap.put("date", dateTimeInMillis + "");
+
+                            rootRef.child("Groups").child(groupkey).setValue(hashMap).addOnCompleteListener(new OnCompleteListener<Void>() {
+                                @Override
+                                public void onComplete(@NonNull Task<Void> task) {
+                                    progressBar.setVisibility(View.GONE);
+
+                                    if (task.isSuccessful()) {
+
+                                        rootRef.child("GroupChatList").child(currentUserID).child(groupkey).child("name").setValue(groupName);
+
+                                        HashMap<String, Object> hashMap2 = new HashMap<>();
+
+                                        hashMap2.put("sender", "default");
+                                        hashMap2.put("message", "default");
+                                        hashMap2.put("date", "default");
+
+                                        rootRef.child("GroupChats").child(groupkey).child(currentUserID).push().setValue(hashMap2);
+
+                                        for (Map.Entry mapElement : hashMapContacts.entrySet()) {
+                                            String key = (String) mapElement.getKey();
+                                            String value = (String) mapElement.getValue();
+
+                                            if (value.equals("true")) {
+
+                                                rootRef.child("GroupChatList").child(key).child(groupkey).child("name").setValue(groupName);
+                                                rootRef.child("GroupChats").child(groupkey).child(key).push().setValue(hashMap2);
+                                            }
+                                        }
+                                        Toast.makeText(getApplicationContext(), "Success", Toast.LENGTH_SHORT).show();
+                                        dialog.dismiss();
+                                        startActivity(new Intent(AddParticipants.this,MainActivity.class).setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP));
+                                    } else {
+                                        Toast.makeText(getApplicationContext(), task.getException().getMessage(), Toast.LENGTH_SHORT).show();
+                                        Log.i("Error", task.getException().getMessage());
+                                        return;
+                                    }
+                                }
+                            });
 
 
+                        }
+                    });
+
+                    dialog.setView(dialogView);
+                    dialog.show();
+                }
+                else {
+
+                    rootRef.child("GroupChatList").child(currentUserID).child(groupIDByIntent).child("name").setValue(groupNameByIntent);
+
+                    HashMap<String, Object> hashMap2 = new HashMap<>();
+
+                    hashMap2.put("sender", "default");
+                    hashMap2.put("message", "default");
+                    hashMap2.put("date", "default");
+
+                    rootRef.child("GroupChats").child(groupIDByIntent).child(currentUserID).push().setValue(hashMap2);
+
+                    for (Map.Entry mapElement : hashMapContacts.entrySet()) {
+                        String key = (String) mapElement.getKey();
+                        String value = (String) mapElement.getValue();
+
+                        if (value.equals("true")) {
+
+                            rootRef.child("GroupChatList").child(key).child(groupIDByIntent).child("name").setValue(groupNameByIntent);
+                            rootRef.child("GroupChats").child(groupIDByIntent).child(key).push().setValue(hashMap2);
+                        }
                     }
-                });
+                    Toast.makeText(getApplicationContext(), "Success", Toast.LENGTH_SHORT).show();
 
-                dialog.setView(dialogView);
-                dialog.show();
+                    startActivity(new Intent(AddParticipants.this,MainActivity.class).setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP));
+
+                }
             }
         });
     }
