@@ -168,7 +168,7 @@ public class AddParticipants extends AppCompatActivity {
 
                                     if (task.isSuccessful()) {
 
-                                        rootRef.child("GroupChatList").child(currentUserID).child(groupkey).child("name").setValue(groupName);
+                                        rootRef.child("GroupChatList").child(currentUserID).child(groupkey).child("name").setValue(groupName.toLowerCase());
 
                                         HashMap<String, Object> hashMap2 = new HashMap<>();
 
@@ -184,7 +184,7 @@ public class AddParticipants extends AppCompatActivity {
 
                                             if (value.equals("true")) {
 
-                                                rootRef.child("GroupChatList").child(key).child(groupkey).child("name").setValue(groupName);
+                                                rootRef.child("GroupChatList").child(key).child(groupkey).child("name").setValue(groupName.toLowerCase());
                                                 rootRef.child("GroupChats").child(groupkey).child(key).push().setValue(hashMap2);
                                             }
                                         }

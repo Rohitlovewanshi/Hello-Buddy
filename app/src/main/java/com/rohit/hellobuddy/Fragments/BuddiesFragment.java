@@ -54,6 +54,7 @@ public class BuddiesFragment extends Fragment {
     private String currentUserID,currentUserName,currentUserPhone;
 
     private EditText editTextSearch;
+    TextView textViewNothing;
 
 
     @Override
@@ -67,7 +68,10 @@ public class BuddiesFragment extends Fragment {
         myBuddyList=buddyView.findViewById(R.id.buddy_list);
         fab_add_buddy=buddyView.findViewById(R.id.fab_add_buddy);
         editTextSearch=buddyView.findViewById(R.id.search_user);
+        textViewNothing=buddyView.findViewById(R.id.txt_nothing);
         myBuddyList.setLayoutManager(new LinearLayoutManager(getContext()));
+
+        textViewNothing.setVisibility(View.VISIBLE);
 
         mAuth=FirebaseAuth.getInstance();
         currentUserID=mAuth.getCurrentUser().getUid();
@@ -99,7 +103,7 @@ public class BuddiesFragment extends Fragment {
 
             @Override
             public void onTextChanged(CharSequence s, int start, int before, int count) {
-                searchUsers(s.toString());
+                searchUsers(s.toString().toLowerCase());
             }
 
             @Override
@@ -365,6 +369,8 @@ public class BuddiesFragment extends Fragment {
                     public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
 
                         if (dataSnapshot.exists()) {
+
+                            textViewNothing.setVisibility(View.GONE);
 
                             String retName=dataSnapshot.child("name").getValue().toString();
                             String retImage=dataSnapshot.child("image").getValue().toString();

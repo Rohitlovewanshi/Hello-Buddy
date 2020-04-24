@@ -15,6 +15,14 @@
         android:inputType="text"
         android:visibility="gone"/>
 
+    <TextView
+        android:id="@+id/txt_nothing"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="No Buddies"
+        android:layout_centerInParent="true"
+        android:visibility="gone"/>
+
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/buddy_list"
         android:layout_width="match_parent"

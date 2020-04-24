@@ -118,8 +118,10 @@ public class MessageActivity extends AppCompatActivity {
         seenListener=reference.addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
-                chatListRef.child(userid).child(fuser.getUid()).child("messageSeen").setValue("true");
-                chatListRef.child(userid).child(fuser.getUid()).child("unseenMsgCount").setValue("0");
+                if (dataSnapshot.exists()) {
+                    chatListRef.child(userid).child(fuser.getUid()).child("messageSeen").setValue("true");
+                    chatListRef.child(userid).child(fuser.getUid()).child("unseenMsgCount").setValue("0");
+                }
             }
 
             @Override
@@ -316,6 +318,10 @@ public class MessageActivity extends AppCompatActivity {
         chatListRef.child(sender).child(receiver).child("lastMessageDate").setValue(timeInMillis+"");
         chatListRef.child(receiver).child(sender).child("lastMessageDate").setValue(timeInMillis+"");
         chatListRef.child(sender).child(receiver).child("messageSeen").setValue("false");
+        chatListRef.child(sender).child(receiver).child("id").setValue(receiver);
+        chatListRef.child(sender).child(receiver).child("NameForSearch").setValue(username.getText().toString().toLowerCase());
+        chatListRef.child(receiver).child(sender).child("id").setValue(sender);
+        chatListRef.child(receiver).child(sender).child("NameForSearch").setValue(currentUserName.toLowerCase());
 
         chatListRef.child(sender).child(receiver).child("unseenMsgCount").addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
@@ -345,40 +351,6 @@ public class MessageActivity extends AppCompatActivity {
 
         chatRef.child(sender).push().setValue(hashMap);
         chatRef.child(receiver).push().setValue(hashMap);
-
-        chatListRef.child(fuser.getUid()).child(userid).addListenerForSingleValueEvent(new ValueEventListener() {
-            @Override
-            public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
-
-                if(!dataSnapshot.exists()){
-                    chatListRef.child(fuser.getUid()).child(userid).child("id").setValue(userid);
-                    chatListRef.child(fuser.getUid()).child(userid).child("NameForSearch").setValue(userNameForSearch.toLowerCase());
-                }
-                chatListRef.child(fuser.getUid()).child(userid).child("date").setValue(timeInMillis+"");
-            }
-
-            @Override
-            public void onCancelled(@NonNull DatabaseError databaseError) {
-
-            }
-        });
-
-        chatListRef.child(userid).child(fuser.getUid()).addListenerForSingleValueEvent(new ValueEventListener() {
-            @Override
-            public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
-                if(!dataSnapshot.exists()) {
-                    chatListRef.child(userid).child(fuser.getUid()).child("id").setValue(fuser.getUid());
-                    chatListRef.child(userid).child(fuser.getUid()).child("NameForSearch").setValue(currentUserName);
-
-                }
-                chatListRef.child(userid).child(fuser.getUid()).child("date").setValue(timeInMillis+"");
-            }
-
-            @Override
-            public void onCancelled(@NonNull DatabaseError databaseError) {
-
-            }
-        });
     }
 
     private void readMessage(final String myid, final String userid) {

@@ -49,6 +49,7 @@ public class ChatsFragment extends Fragment {
     DatabaseReference chatListRef,userRef;
 
     EditText editTextSearch;
+    TextView textViewNothing;
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
@@ -60,11 +61,13 @@ public class ChatsFragment extends Fragment {
 
         recyclerView=view.findViewById(R.id.recycler_view);
         editTextSearch=view.findViewById(R.id.search_user);
-        //recyclerView.setHasFixedSize(true);
+        textViewNothing=view.findViewById(R.id.txt_nothing);
         LinearLayoutManager linearLayoutManager=new LinearLayoutManager(getContext());
         linearLayoutManager.setReverseLayout(true);
         linearLayoutManager.setStackFromEnd(true);
         recyclerView.setLayoutManager(linearLayoutManager);
+
+        textViewNothing.setVisibility(View.VISIBLE);
 
         fuser= FirebaseAuth.getInstance().getCurrentUser();
         chatListRef=FirebaseDatabase.getInstance().getReference().child("ChatList");
@@ -80,7 +83,7 @@ public class ChatsFragment extends Fragment {
 
             @Override
             public void onTextChanged(CharSequence s, int start, int before, int count) {
-                searchUsers(s.toString());
+                searchUsers(s.toString().toLowerCase());
             }
 
             @Override
@@ -121,6 +124,8 @@ public class ChatsFragment extends Fragment {
                     public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
 
                         if (dataSnapshot.exists()) {
+
+                            textViewNothing.setVisibility(View.GONE);
 
                             String retName=dataSnapshot.child("name").getValue().toString();
                             String retImage=dataSnapshot.child("image").getValue().toString();

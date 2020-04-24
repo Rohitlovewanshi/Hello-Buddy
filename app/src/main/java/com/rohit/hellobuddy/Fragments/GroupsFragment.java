@@ -10,7 +10,12 @@ import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import android.text.Editable;
+import android.text.TextWatcher;
 import android.view.LayoutInflater;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.EditText;
@@ -44,6 +49,7 @@ public class GroupsFragment extends Fragment {
 
     DatabaseReference rootRef;
     String currentUserId;
+    TextView textViewNothing;
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
@@ -51,9 +57,14 @@ public class GroupsFragment extends Fragment {
 
         View view= inflater.inflate(R.layout.fragment_groups, container, false);
 
+        setHasOptionsMenu(true);
+
         groups_recyclerView=view.findViewById(R.id.group_list);
         create_group_actionBar=view.findViewById(R.id.create_group);
         editTextSearch=view.findViewById(R.id.search_groups);
+        textViewNothing=view.findViewById(R.id.txt_nothing);
+
+        textViewNothing.setVisibility(View.VISIBLE);
 
         groups_recyclerView.setHasFixedSize(true);
         LinearLayoutManager linearLayoutManager=new LinearLayoutManager(getContext());
@@ -76,7 +87,51 @@ public class GroupsFragment extends Fragment {
             }
         });
 
+        editTextSearch.addTextChangedListener(new TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+
+            }
+
+            @Override
+            public void onTextChanged(CharSequence s, int start, int before, int count) {
+                SearchGroups(s.toString().toLowerCase());
+            }
+
+            @Override
+            public void afterTextChanged(Editable s) {
+
+            }
+        });
+
         return view;
+    }
+
+    @Override
+    public void onCreateOptionsMenu(@NonNull Menu menu, @NonNull MenuInflater inflater) {
+        super.onCreateOptionsMenu(menu, inflater);
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(@NonNull MenuItem item) {
+        switch (item.getItemId()){
+
+            case R.id.menu_search:
+                if (editTextSearch.getVisibility()==View.GONE) {
+                    editTextSearch.setVisibility(View.VISIBLE);
+                }
+                else{
+                    editTextSearch.setVisibility(View.GONE);
+                    if (!editTextSearch.getText().toString().isEmpty()){
+                        editTextSearch.setText("");
+                        SearchGroups("");
+                    }
+                }
+
+            default:
+                break;
+        }
+        return false;
     }
 
     @Override
@@ -121,6 +176,8 @@ public class GroupsFragment extends Fragment {
                 rootRef.child("Groups").child(groupID).addValueEventListener(new ValueEventListener() {
                     @Override
                     public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+
+                        textViewNothing.setVisibility(View.GONE);
 
                         final Group group1=dataSnapshot.getValue(Group.class);
 

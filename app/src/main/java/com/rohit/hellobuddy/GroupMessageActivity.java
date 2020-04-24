@@ -72,7 +72,7 @@ public class GroupMessageActivity extends AppCompatActivity {
         toolbar.setNavigationOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                startActivity(new Intent(GroupMessageActivity.this,MainActivity.class).setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP));
+                finish();
             }
         });
 
@@ -153,7 +153,17 @@ public class GroupMessageActivity extends AppCompatActivity {
                     @Override
                     public void onComplete(@NonNull Task<Void> task) {
                         if (task.isSuccessful()){
-                            startActivity(new Intent(GroupMessageActivity.this,MainActivity.class));
+                            rootRef.child("GroupChats").child(groupId).child(fuser.getUid()).removeValue().addOnCompleteListener(new OnCompleteListener<Void>() {
+                                @Override
+                                public void onComplete(@NonNull Task<Void> task) {
+                                    if (task.isSuccessful()){
+                                        startActivity(new Intent(GroupMessageActivity.this,MainActivity.class));
+                                    }
+                                    else {
+                                        Toast.makeText(GroupMessageActivity.this, task.getException().getMessage(), Toast.LENGTH_SHORT).show();
+                                    }
+                                }
+                            });
                         }
                         else {
                             Toast.makeText(GroupMessageActivity.this, task.getException().getMessage(), Toast.LENGTH_SHORT).show();

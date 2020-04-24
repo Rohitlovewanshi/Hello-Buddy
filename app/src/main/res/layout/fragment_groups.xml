@@ -7,19 +7,27 @@
     tools:context=".Fragments.GroupsFragment">
 
     <EditText
+        android:id="@+id/search_groups"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_margin="5dp"
         android:hint="Search..."
-        android:id="@+id/search_groups"
         android:inputType="text"
+        android:visibility="gone"/>
+
+    <TextView
+        android:id="@+id/txt_nothing"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="No Groups"
+        android:layout_centerInParent="true"
         android:visibility="gone"/>
 
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/group_list"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:layout_below="@+id/search_user"/>
+        android:layout_below="@+id/search_groups"/>
 
     <com.google.android.material.floatingactionbutton.FloatingActionButton
         android:id="@+id/create_group"
