@@ -83,8 +83,11 @@ public class BuddiesFragment extends Fragment {
             @Override
             public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
 
-                currentUserName=dataSnapshot.child("name").getValue().toString();
-                currentUserPhone=dataSnapshot.child("phone").getValue().toString();
+                if (dataSnapshot.child("name").exists()) {
+
+                    currentUserName = dataSnapshot.child("name").getValue().toString();
+                    currentUserPhone = dataSnapshot.child("phone").getValue().toString();
+                }
             }
 
             @Override
@@ -204,7 +207,7 @@ public class BuddiesFragment extends Fragment {
 
                         progressBar.setVisibility(View.VISIBLE);
 
-                        userRef.addValueEventListener(new ValueEventListener() {
+                        userRef.addListenerForSingleValueEvent(new ValueEventListener() {
                             @Override
                             public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
 

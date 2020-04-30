@@ -2,16 +2,20 @@ package com.rohit.hellobuddy;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
+import androidx.core.app.ActivityCompat;
+import androidx.core.content.ContextCompat;
 
+import android.Manifest;
 import android.app.ProgressDialog;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
 import android.net.Uri;
 import android.os.Bundle;
 import android.provider.MediaStore;
+import android.util.Base64;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
@@ -19,7 +23,6 @@ import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.ProgressBar;
 import android.widget.Toast;
-
 import com.google.android.gms.tasks.Continuation;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.OnFailureListener;
@@ -34,13 +37,19 @@ import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.StorageReference;
 import com.google.firebase.storage.StorageTask;
 import com.google.firebase.storage.UploadTask;
+import com.sinch.android.rtc.ClientRegistration;
+import com.sinch.android.rtc.PushTokenRegistrationCallback;
+import com.sinch.android.rtc.Sinch;
+import com.sinch.android.rtc.SinchError;
+import com.sinch.android.rtc.UserController;
+import com.sinch.android.rtc.UserRegistrationCallback;
 import com.squareup.picasso.Callback;
 import com.squareup.picasso.Picasso;
 import com.theartofdev.edmodo.cropper.CropImage;
 import com.theartofdev.edmodo.cropper.CropImageView;
-
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.security.MessageDigest;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.HashMap;
@@ -48,7 +57,12 @@ import java.util.Locale;
 
 import de.hdodenhof.circleimageview.CircleImageView;
 
-public class ProfileSetting extends AppCompatActivity {
+import static com.rohit.hellobuddy.SinchService.APP_KEY;
+import static com.rohit.hellobuddy.SinchService.APP_SECRET;
+import static com.rohit.hellobuddy.SinchService.ENVIRONMENT;
+
+
+public class ProfileSetting extends BaseActivity implements SinchService.StartFailedListener, PushTokenRegistrationCallback, UserRegistrationCallback {
 
     CircleImageView profileImage;
     ImageButton setProfileImage;
@@ -58,6 +72,7 @@ public class ProfileSetting extends AppCompatActivity {
     String currentUserID;
     FirebaseAuth mAuth;
     DatabaseReference RootRef;
+    ValueEventListener listener;
 
     StorageReference UserProfileImagesRef;
 
@@ -67,6 +82,9 @@ public class ProfileSetting extends AppCompatActivity {
     StorageTask uploadTask;
 
     ProgressBar imageProgressBar;
+
+    private long mSigningSequence = 1;
+    private static final int REQUEST_ID_MULTIPLE_PERMISSIONS=1;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -98,7 +116,8 @@ public class ProfileSetting extends AppCompatActivity {
         buttonSubmit.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                UpdateSettings();
+                checkForPermission();
+                registerSinch();
             }
         });
 
@@ -123,7 +142,7 @@ public class ProfileSetting extends AppCompatActivity {
 
         imageProgressBar.setVisibility(View.VISIBLE);
 
-        RootRef.child("Users").child(currentUserID).addValueEventListener(new ValueEventListener() {
+        listener=new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
                 if((dataSnapshot.child("image").exists())){
@@ -156,9 +175,11 @@ public class ProfileSetting extends AppCompatActivity {
 
             @Override
             public void onCancelled(@NonNull DatabaseError databaseError) {
-                Log.i("DatabaseError",databaseError.getMessage());
+
             }
-        });
+        };
+
+        RootRef.child("Users").child(currentUserID).addValueEventListener(listener);
     }
 
     private void StartCropActivity() {
@@ -247,47 +268,50 @@ public class ProfileSetting extends AppCompatActivity {
 
     private void UpdateSettings() {
 
-        String setUserName=userName.getText().toString();
-        String setStatus=userStatus.getText().toString();
+        String setUserName = userName.getText().toString();
+        String setStatus = userStatus.getText().toString();
 
-        if(setUserName.isEmpty()){
+        if (setUserName.isEmpty()) {
             userName.setError("Field is empty");
             userName.requestFocus();
             return;
         }
 
-        if(setStatus.isEmpty()){
+        if (setStatus.isEmpty()) {
             userStatus.setError("Field is empty");
             userStatus.requestFocus();
             return;
         }
 
-        SharedPreferences prefs=getSharedPreferences("Phone",MODE_PRIVATE);
-        String phoneNumber=prefs.getString("number","");
+        loadingBar.setTitle("Profile Setting");
+        loadingBar.setMessage("Please wait, while we are updating your profile...");
+        loadingBar.setCanceledOnTouchOutside(false);
+        loadingBar.show();
 
-        HashMap<String ,Object > profileMap=new HashMap<>();
-        profileMap.put("uid",currentUserID);
-        profileMap.put("name",setUserName);
-        profileMap.put("status",setStatus);
-        profileMap.put("phone",phoneNumber);
+        SharedPreferences prefs = getSharedPreferences("Phone", MODE_PRIVATE);
+        String phoneNumber = prefs.getString("number", "");
+
+        HashMap<String, Object> profileMap = new HashMap<>();
+        profileMap.put("uid", currentUserID);
+        profileMap.put("name", setUserName);
+        profileMap.put("status", setStatus);
+        profileMap.put("phone", phoneNumber);
 
         RootRef.child("Users").child(currentUserID).updateChildren(profileMap).addOnCompleteListener(new OnCompleteListener<Void>() {
             @Override
             public void onComplete(@NonNull Task<Void> task) {
-                if(task.isSuccessful()){
-                    Toast.makeText(getApplicationContext(),"Profile updated",Toast.LENGTH_SHORT).show();
-                    Intent intent=new Intent(getApplicationContext(),MainActivity.class);
-                    intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK | Intent.FLAG_ACTIVITY_NEW_TASK);
-                    startActivity(intent);
+                if (task.isSuccessful()) {
+                    loadingBar.dismiss();
+                    Toast.makeText(getApplicationContext(), "Profile updated", Toast.LENGTH_SHORT).show();
+                    startActivity(new Intent(ProfileSetting.this,MainActivity.class));
                     finish();
                 } else {
-                    String message=task.getException().toString();
-                    Log.i("updateSettings",message);
+                    String message = task.getException().toString();
+                    Log.i("updateSettings", message);
                 }
             }
         });
     }
-
 
     private void status(String status){
         DatabaseReference reference=FirebaseDatabase.getInstance().getReference("Users").child(currentUserID);
@@ -305,12 +329,119 @@ public class ProfileSetting extends AppCompatActivity {
     @Override
     protected void onResume() {
         super.onResume();
+        RootRef.child("Users").child(currentUserID).addValueEventListener(listener);
         status("online");
     }
 
     @Override
     protected void onPause() {
         super.onPause();
+        RootRef.child("Users").child(currentUserID).removeEventListener(listener);
         status("offline");
+    }
+
+    @Override
+    protected void onServiceConnected() {
+        getSinchServiceInterface().setStartListener(this);
+    }
+
+    @Override
+    public void onStartFailed(SinchError error) {
+        Toast.makeText(this, error.toString(), Toast.LENGTH_LONG).show();
+    }
+
+    @Override
+    public void onStarted() {
+        SharedPreferences.Editor ed=getSharedPreferences("sinch_service",MODE_PRIVATE).edit();
+        ed.putBoolean("isLogin",true);
+        ed.apply();
+        UpdateSettings();
+    }
+
+    private void startClientAndFinishActivity() {
+        // start Sinch Client, it'll result onStarted() callback from where the place call activity will be started
+        if (!getSinchServiceInterface().isStarted()) {
+            getSinchServiceInterface().startClient();
+        }
+    }
+
+    private void registerSinch() {
+
+        if (!currentUserID.equals(getSinchServiceInterface().getUsername())){
+            getSinchServiceInterface().stopClient();
+        }
+
+        getSinchServiceInterface().setUsername(currentUserID);
+
+        UserController uc = Sinch.getUserControllerBuilder()
+                .context(getApplicationContext())
+                .applicationKey(APP_KEY)
+                .userId(currentUserID)
+                .environmentHost(ENVIRONMENT)
+                .build();
+        uc.registerUser(this, this);
+    }
+
+    @Override
+    public void tokenRegistered() {
+        startClientAndFinishActivity();
+    }
+
+    @Override
+    public void tokenRegistrationFailed(SinchError sinchError) {
+        loadingBar.dismiss();
+        Toast.makeText(this, "Push token registration failed - incoming calls can't be received!", Toast.LENGTH_LONG).show();
+    }
+
+    // The most secure way is to obtain the signature from the backend,
+    // since storing APP_SECRET in the app is not secure.
+    // Following code demonstrates how the signature is obtained provided
+    // the UserId and the APP_KEY and APP_SECRET.
+    @Override
+    public void onCredentialsRequired(ClientRegistration clientRegistration) {
+        String toSign = currentUserID + APP_KEY + mSigningSequence + APP_SECRET;
+        String signature;
+        MessageDigest messageDigest;
+        try {
+            messageDigest = MessageDigest.getInstance("SHA-1");
+            byte[] hash = messageDigest.digest(toSign.getBytes("UTF-8"));
+            signature = Base64.encodeToString(hash, Base64.DEFAULT).trim();
+        } catch (Exception e) {
+            throw new RuntimeException(e.getMessage(), e.getCause());
+        }
+
+        clientRegistration.register(signature, mSigningSequence++);
+    }
+
+    @Override
+    public void onUserRegistered() {
+        // Instance is registered, but we'll wait for another callback, assuring that the push token is
+        // registered as well, meaning we can receive incoming calls.
+    }
+
+    @Override
+    public void onUserRegistrationFailed(SinchError sinchError) {
+        loadingBar.dismiss();
+        Toast.makeText(this, "Registration failed!", Toast.LENGTH_LONG).show();
+    }
+
+    private void checkForPermission() {
+
+        String[] permission_list=new String[3];
+        permission_list[0]= Manifest.permission.CAMERA;
+        permission_list[1]=Manifest.permission.RECORD_AUDIO;
+        permission_list[2]=Manifest.permission.READ_PHONE_STATE;
+
+        String[] granted_permissions = new String[3];
+        int index=0;
+        int grant;
+        for(int i=0;i<3;i++) {
+            grant= ContextCompat.checkSelfPermission(getApplicationContext(),permission_list[i]);
+            if (grant!= PackageManager.PERMISSION_GRANTED) {
+                granted_permissions[index++]=permission_list[i];
+            }
+        }
+        if(index!=0)
+            ActivityCompat.requestPermissions(ProfileSetting.this, granted_permissions, REQUEST_ID_MULTIPLE_PERMISSIONS);
     }
 }

@@ -58,7 +58,8 @@ public class ProfileView extends AppCompatActivity {
     ImageView edit_name,edit_status;
 
     FirebaseUser fuser;
-    DatabaseReference userRef;
+    DatabaseReference userRef,reference1;
+    ValueEventListener listener;
 
     StorageReference UserProfileImagesRef;
 
@@ -217,10 +218,9 @@ public class ProfileView extends AppCompatActivity {
 
     private void LoadFromDatabase(String userid) {
 
-        userRef.child(userid).addValueEventListener(new ValueEventListener() {
+        listener=new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
-
                 if (!dataSnapshot.child("image").getValue().toString().equals("default")){
                     progressBar.setVisibility(View.VISIBLE);
                     Picasso.get().load(dataSnapshot.child("image").getValue().toString()).into(profile_image, new Callback() {
@@ -240,14 +240,16 @@ public class ProfileView extends AppCompatActivity {
                 textViewName.setText(dataSnapshot.child("name").getValue().toString());
                 textViewStatus.setText(dataSnapshot.child("status").getValue().toString());
                 textViewPhone.setText(dataSnapshot.child("phone").getValue().toString());
-
             }
 
             @Override
             public void onCancelled(@NonNull DatabaseError databaseError) {
 
             }
-        });
+        };
+
+        reference1=userRef.child(userid);
+        reference1.addValueEventListener(listener);
     }
 
     private void StartCropActivity() {
@@ -322,7 +324,7 @@ public class ProfileView extends AppCompatActivity {
     }
 
     private void status(String status){
-        DatabaseReference reference=FirebaseDatabase.getInstance().getReference("Users").child(fuser.getUid());
+        DatabaseReference reference=FirebaseDatabase.getInstance().getReference().child("Users").child(fuser.getUid());
 
         SimpleDateFormat sdf=new SimpleDateFormat("dd/MM/yyyy HH:mm:ss", Locale.getDefault());
         String currentDateTime=sdf.format(new Date());
@@ -337,12 +339,14 @@ public class ProfileView extends AppCompatActivity {
     @Override
     protected void onResume() {
         super.onResume();
+        reference1.addValueEventListener(listener);
         status("online");
     }
 
     @Override
     protected void onPause() {
         super.onPause();
+        reference1.removeEventListener(listener);
         status("offline");
     }
 }

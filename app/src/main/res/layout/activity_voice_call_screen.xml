@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:background="#5EBCF3DD">
+
+    <RelativeLayout
+        android:id="@+id/topPanel"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+
+        <TextView
+            android:id="@+id/remoteUser"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_centerHorizontal="true"
+            android:text="Sample user"
+            android:textSize="28sp"
+            android:layout_marginTop="25dp"
+            android:background="@color/white"
+            android:textColor="@android:color/black"/>
+
+        <TextView
+            android:id="@+id/callState"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_centerHorizontal="true"
+            android:text="Incoming Voice Call"
+            android:textSize="16sp"
+            android:textAllCaps="true"
+            android:layout_below="@id/remoteUser"
+            android:layout_marginTop="10dp"
+            android:background="@color/white"
+            />
+
+        <TextView
+            android:id="@+id/callDuration"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_horizontal"
+            android:layout_marginBottom="8dp"
+            android:layout_marginTop="10dp"
+            android:text="00:00"
+            android:textSize="16sp"
+            android:layout_centerHorizontal="true"
+            android:layout_below="@id/callState"
+            android:background="@color/white"
+            />
+
+
+    </RelativeLayout>
+
+    <ImageView
+        android:id="@+id/profile_image_calling"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:contentDescription="Call background">
+
+    </ImageView>
+
+    <ImageView
+        android:id="@+id/hangupButton"
+        android:layout_width="70dp"
+        android:layout_height="70dp"
+        android:src="@drawable/ic_call_end"
+        android:layout_alignParentBottom="true"
+        android:layout_marginBottom="50dp"
+        android:layout_centerHorizontal="true"
+        android:background="@drawable/red_circle"
+        android:padding="10dp"/>
+
+
+</RelativeLayout>

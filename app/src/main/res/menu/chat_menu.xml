@@ -3,6 +3,18 @@
     xmlns:app="http://schemas.android.com/apk/res-auto">
 
     <item
+        android:id="@+id/voice_call"
+        android:title="Voice Call"
+        app:showAsAction="ifRoom"
+        android:icon="@drawable/voice_call_icon"/>
+
+    <item
+        android:id="@+id/video_call"
+        android:title="Video Call"
+        app:showAsAction="ifRoom"
+        android:icon="@drawable/video_call_icon"/>
+
+    <item
         android:id="@+id/clear_conversation"
         android:title="Delete conservation"
         app:showAsAction="never"/>

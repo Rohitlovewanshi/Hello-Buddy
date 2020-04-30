@@ -2,13 +2,19 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="com.rohit.hellobuddy">
 
+    <uses-feature
+        android:name="android.hardware.microphone"
+        android:required="false" />
+
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
+    <uses-permission android:name="android.permission.RECORD_AUDIO" />
+    <uses-permission android:name="android.permission.MODIFY_AUDIO_SETTINGS" />
+    <uses-permission android:name="android.permission.READ_PHONE_STATE" />
+    <uses-permission android:name="android.permission.BLUETOOTH" />
     <uses-permission android:name="android.permission.CAMERA" />
-
-    <uses-feature android:name="android.hardware.camera" />
-
+    <uses-permission android:name="com.google.android.c2dm.permission.RECEIVE" />
     <uses-permission android:name="android.permission.READ_CONTACTS" />
 
     <application
@@ -20,7 +26,9 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
-        <activity android:name=".ViewGroupParticipants"></activity>
+        <activity android:name=".VideoCallScreenActivity"></activity>
+        <activity android:name=".VoiceCallScreenActivity" />
+        <activity android:name=".ViewGroupParticipants" />
         <activity android:name=".GroupProfileView" />
         <activity android:name=".AddParticipants" />
         <activity android:name=".GroupMessageActivity" />
@@ -30,6 +38,14 @@
         <activity android:name=".MainActivity" />
         <activity android:name=".OtpVerificationActivity" />
         <activity android:name=".LoginActivity" />
+
+        <service android:name=".SinchService" />
+        <service android:name=".fcm.FcmListenerService">
+            <intent-filter>
+                <action android:name="com.google.firebase.MESSAGING_EVENT" />
+            </intent-filter>
+        </service>
+
         <activity
             android:name=".SplashScreenActivity"
             android:screenOrientation="fullSensor">
@@ -43,6 +59,8 @@
         <activity
             android:name="com.theartofdev.edmodo.cropper.CropImageActivity"
             android:theme="@style/Theme.AppCompat" />
+        <activity android:name=".IncomingCallScreenActivity" />
+        <activity android:name=".IncomingVideoCallActivity" />
     </application>
 
 </manifest>

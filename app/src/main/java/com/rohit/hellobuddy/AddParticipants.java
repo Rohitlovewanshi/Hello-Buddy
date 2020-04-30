@@ -325,7 +325,7 @@ public class AddParticipants extends AppCompatActivity {
 
                 Toast.makeText(getApplicationContext(),user.getName(),Toast.LENGTH_SHORT).show();
 
-                userRef.child(userIDs).addValueEventListener(new ValueEventListener() {
+                userRef.child(userIDs).addListenerForSingleValueEvent(new ValueEventListener() {
                     @Override
                     public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
 
@@ -398,4 +398,30 @@ public class AddParticipants extends AppCompatActivity {
         return date.getTime();
     }
 
+    private void status(String status){
+        DatabaseReference ref1=FirebaseDatabase.getInstance().getReference().child("Users").child(currentUserID);
+
+        SimpleDateFormat sdf=new SimpleDateFormat("dd/MM/yyyy HH:mm:ss", Locale.getDefault());
+        String currentDateTime=sdf.format(new Date());
+
+        HashMap<String ,Object>hashMap=new HashMap<>();
+        hashMap.put("currentStatus",status);
+        hashMap.put("lastSeenDate",currentDateTime);
+
+        ref1.updateChildren(hashMap);
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+
+        status("online");
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+
+        status("offline");
+    }
 }

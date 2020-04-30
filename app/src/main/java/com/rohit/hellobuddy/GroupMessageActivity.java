@@ -1,5 +1,6 @@
 package com.rohit.hellobuddy;
 
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Bundle;
 import android.view.Menu;
@@ -12,6 +13,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
+import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
 import androidx.recyclerview.widget.LinearLayoutManager;
@@ -56,7 +58,8 @@ public class GroupMessageActivity extends AppCompatActivity {
     String groupId;
 
     FirebaseUser fuser;
-    DatabaseReference reference,rootRef;
+    DatabaseReference reference,rootRef,reference1;
+    ValueEventListener listener1,listener2;
 
     List<GroupChat> mChat;
 
@@ -149,27 +152,51 @@ public class GroupMessageActivity extends AppCompatActivity {
                 break;
 
             case R.id.exit_group:
-                rootRef.child("GroupChatList").child(fuser.getUid()).child(groupId).removeValue().addOnCompleteListener(new OnCompleteListener<Void>() {
+
+                final AlertDialog.Builder builder=new AlertDialog.Builder(GroupMessageActivity.this);
+                builder.setMessage("This option will delete chats on both ends. Are you sure ?");
+                builder.setTitle("Alert !");
+                builder.setCancelable(false);
+
+                builder.setPositiveButton("Yes", new DialogInterface.OnClickListener() {
                     @Override
-                    public void onComplete(@NonNull Task<Void> task) {
-                        if (task.isSuccessful()){
-                            rootRef.child("GroupChats").child(groupId).child(fuser.getUid()).removeValue().addOnCompleteListener(new OnCompleteListener<Void>() {
-                                @Override
-                                public void onComplete(@NonNull Task<Void> task) {
-                                    if (task.isSuccessful()){
-                                        startActivity(new Intent(GroupMessageActivity.this,MainActivity.class));
-                                    }
-                                    else {
-                                        Toast.makeText(GroupMessageActivity.this, task.getException().getMessage(), Toast.LENGTH_SHORT).show();
-                                    }
+                    public void onClick(DialogInterface dialog, int which) {
+
+                        rootRef.child("GroupChatList").child(fuser.getUid()).child(groupId).removeValue().addOnCompleteListener(new OnCompleteListener<Void>() {
+                            @Override
+                            public void onComplete(@NonNull Task<Void> task) {
+                                if (task.isSuccessful()){
+                                    rootRef.child("GroupChats").child(groupId).child(fuser.getUid()).removeValue().addOnCompleteListener(new OnCompleteListener<Void>() {
+                                        @Override
+                                        public void onComplete(@NonNull Task<Void> task) {
+                                            if (task.isSuccessful()){
+                                                startActivity(new Intent(GroupMessageActivity.this,MainActivity.class));
+                                            }
+                                            else {
+                                                Toast.makeText(GroupMessageActivity.this, task.getException().getMessage(), Toast.LENGTH_SHORT).show();
+                                            }
+                                        }
+                                    });
                                 }
-                            });
-                        }
-                        else {
-                            Toast.makeText(GroupMessageActivity.this, task.getException().getMessage(), Toast.LENGTH_SHORT).show();
-                        }
+                                else {
+                                    Toast.makeText(GroupMessageActivity.this, task.getException().getMessage(), Toast.LENGTH_SHORT).show();
+                                }
+                            }
+                        });
+
                     }
                 });
+
+                builder.setNegativeButton("No", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        dialog.cancel();
+                    }
+                });
+
+                AlertDialog alertDialog=builder.create();
+                alertDialog.show();
+
                 break;
 
         }
@@ -213,12 +240,9 @@ public class GroupMessageActivity extends AppCompatActivity {
 
         mChat=new ArrayList<>();
 
-        reference=FirebaseDatabase.getInstance().getReference().child("GroupChats").child(groupId).child(fuser.getUid());
-
-        reference.addValueEventListener(new ValueEventListener() {
+        listener1=new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
-
                 mChat.clear();
 
                 for (DataSnapshot snapshot : dataSnapshot.getChildren()){
@@ -238,7 +262,11 @@ public class GroupMessageActivity extends AppCompatActivity {
             public void onCancelled(@NonNull DatabaseError databaseError) {
 
             }
-        });
+        };
+
+        reference=rootRef.child("GroupChats").child(groupId).child(fuser.getUid());
+
+        reference.addValueEventListener(listener1);
     }
 
     private long ConvertDateTimeIntoMilis(String currentDateTime){
@@ -254,7 +282,7 @@ public class GroupMessageActivity extends AppCompatActivity {
     }
 
     private void status(String status){
-        DatabaseReference reference1=FirebaseDatabase.getInstance().getReference("Users").child(fuser.getUid());
+        DatabaseReference ref1=rootRef.child("Users").child(fuser.getUid());
 
         SimpleDateFormat sdf=new SimpleDateFormat("dd/MM/yyyy HH:mm:ss", Locale.getDefault());
         String currentDateTime=sdf.format(new Date());
@@ -263,30 +291,32 @@ public class GroupMessageActivity extends AppCompatActivity {
         hashMap.put("currentStatus",status);
         hashMap.put("lastSeenDate",currentDateTime);
 
-        reference1.updateChildren(hashMap);
+        ref1.updateChildren(hashMap);
     }
 
     @Override
     protected void onResume() {
         super.onResume();
-
+        reference.addValueEventListener(listener1);
+        reference1.addValueEventListener(listener2);
         status("online");
     }
 
     @Override
     protected void onPause() {
         super.onPause();
+        if (listener1!=null)
+            reference.removeEventListener(listener1);
+        if (listener2!=null)
+            reference1.removeEventListener(listener2);
         status("offline");
     }
 
     private void readGroupInfo() {
 
-        reference=FirebaseDatabase.getInstance().getReference().child("Groups");
-
-        reference.child(groupId).addValueEventListener(new ValueEventListener() {
+        listener2=new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
-
                 Group group=dataSnapshot.getValue(Group.class);
 
                 username.setText(group.getName());
@@ -305,7 +335,11 @@ public class GroupMessageActivity extends AppCompatActivity {
             public void onCancelled(@NonNull DatabaseError databaseError) {
 
             }
-        });
+        };
+
+        reference1=rootRef.child("Groups").child(groupId);
+
+        reference1.addValueEventListener(listener2);
 
         readGroupMessage();
     }

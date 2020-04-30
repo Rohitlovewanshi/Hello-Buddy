@@ -67,7 +67,7 @@ public class OtpVerificationActivity extends AppCompatActivity {
 
         textViewWrongNumber.setText("Wrong Number ? "+phoneNumber);
 
-        loadingBar = new ProgressDialog(this);
+        loadingBar = new ProgressDialog(OtpVerificationActivity.this);
 
         loadingBar.setTitle("Phone verification");
         loadingBar.setMessage("Please wait, while we are authenticating your phone...");
@@ -168,6 +168,7 @@ public class OtpVerificationActivity extends AppCompatActivity {
             super.onCodeSent(verificationId,token);
 
             loadingBar.dismiss();
+            Toast.makeText(OtpVerificationActivity.this, "Otp sent", Toast.LENGTH_SHORT).show();
             mVerificationId=verificationId;
             mResendToken=token;
 

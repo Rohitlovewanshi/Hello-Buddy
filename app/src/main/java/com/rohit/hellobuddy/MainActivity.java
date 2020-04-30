@@ -2,7 +2,6 @@ package com.rohit.hellobuddy;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
@@ -37,7 +36,10 @@ import com.rohit.hellobuddy.Fragments.BuddiesFragment;
 import com.rohit.hellobuddy.Fragments.ChatsFragment;
 import com.rohit.hellobuddy.Fragments.GroupsFragment;
 import com.rohit.hellobuddy.model.User;
+import com.sinch.android.rtc.Sinch;
+import com.sinch.android.rtc.UserController;
 import com.squareup.picasso.Picasso;
+
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
@@ -48,7 +50,10 @@ import java.util.Objects;
 
 import de.hdodenhof.circleimageview.CircleImageView;
 
-public class MainActivity extends AppCompatActivity {
+import static com.rohit.hellobuddy.SinchService.APP_KEY;
+import static com.rohit.hellobuddy.SinchService.ENVIRONMENT;
+
+public class MainActivity extends BaseActivity {
 
     private static final int REQUEST_ID_MULTIPLE_PERMISSIONS=1;
 
@@ -69,7 +74,7 @@ public class MainActivity extends AppCompatActivity {
 
         mAuth=FirebaseAuth.getInstance();
         currentUser=mAuth.getCurrentUser();
-        currentUserID=mAuth.getCurrentUser().getUid();
+        currentUserID=currentUser.getUid();
         rootRef= FirebaseDatabase.getInstance().getReference();
         buddiesRef=FirebaseDatabase.getInstance().getReference().child("Buddies").child(currentUserID);
 
@@ -132,6 +137,28 @@ public class MainActivity extends AppCompatActivity {
         tabLayout.setupWithViewPager(viewPager);
     }
 
+    private void checkForPermission() {
+
+        String[] permission_list=new String[5];
+        permission_list[0]=Manifest.permission.CAMERA;
+        permission_list[1]=Manifest.permission.READ_CONTACTS;
+        permission_list[2]=Manifest.permission.RECORD_AUDIO;
+        permission_list[3]=Manifest.permission.WRITE_EXTERNAL_STORAGE;
+        permission_list[4]=Manifest.permission.READ_PHONE_STATE;
+
+        String[] granted_permissions = new String[5];
+        int index=0;
+        int grant;
+        for(int i=0;i<5;i++) {
+            grant=ContextCompat.checkSelfPermission(getApplicationContext(),permission_list[i]);
+            if (grant!=PackageManager.PERMISSION_GRANTED) {
+                granted_permissions[index++]=permission_list[i];
+            }
+        }
+        if (index!=0)
+        ActivityCompat.requestPermissions(MainActivity.this, granted_permissions, REQUEST_ID_MULTIPLE_PERMISSIONS);
+    }
+
     @Override
     protected void onStart() {
         super.onStart();
@@ -139,6 +166,7 @@ public class MainActivity extends AppCompatActivity {
         if (currentUser!=null){
             VerifyUserExistance();
         }
+        checkForPermission();
     }
 
     @Override
@@ -153,8 +181,18 @@ public class MainActivity extends AppCompatActivity {
 
             case R.id.logout:
                 FirebaseAuth.getInstance().signOut();
+                if (getSinchServiceInterface() != null) {
+                    UserController uc = Sinch.getUserControllerBuilder()
+                            .context(getApplicationContext())
+                            .applicationKey(APP_KEY)
+                            .userId(getSinchServiceInterface().getUsername())
+                            .environmentHost(ENVIRONMENT)
+                            .build();
+                    uc.unregisterPushToken();
+                    getSinchServiceInterface().stopClient();
+                }
                 startActivity(new Intent(getApplicationContext(),LoginActivity.class).setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP));
-                return true;
+                break;
 
             case R.id.sync_buddies:
                 String permission_contact= Manifest.permission.READ_CONTACTS;
@@ -168,6 +206,7 @@ public class MainActivity extends AppCompatActivity {
                 else{
                     new LongOperation().execute("");
                 }
+                break;
 
         }
 
@@ -211,7 +250,7 @@ public class MainActivity extends AppCompatActivity {
     private void VerifyUserExistance() {
 
         String currentUserID= Objects.requireNonNull(mAuth.getCurrentUser()).getUid();
-        rootRef.child("Users").child(currentUserID).addValueEventListener(new ValueEventListener() {
+        rootRef.child("Users").child(currentUserID).addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
 
@@ -334,7 +373,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void status(String status){
-        DatabaseReference reference=FirebaseDatabase.getInstance().getReference("Users").child(currentUserID);
+        DatabaseReference reference=FirebaseDatabase.getInstance().getReference().child("Users").child(currentUserID);
 
         SimpleDateFormat sdf=new SimpleDateFormat("dd/MM/yyyy HH:mm:ss", Locale.getDefault());
         String currentDateTime=sdf.format(new Date());
@@ -356,5 +395,10 @@ public class MainActivity extends AppCompatActivity {
     protected void onPause() {
         super.onPause();
         status("offline");
+    }
+
+    @Override
+    protected void onStop() {
+        super.onStop();
     }
 }

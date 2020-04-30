@@ -15,6 +15,7 @@ import android.widget.TextView;
 
 import com.firebase.ui.database.FirebaseRecyclerAdapter;
 import com.firebase.ui.database.FirebaseRecyclerOptions;
+import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
@@ -22,6 +23,11 @@ import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 import com.rohit.hellobuddy.model.User;
 import com.squareup.picasso.Picasso;
+
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.Locale;
 
 import de.hdodenhof.circleimageview.CircleImageView;
 
@@ -33,7 +39,7 @@ public class ViewGroupParticipants extends AppCompatActivity {
     DatabaseReference rootRef,userRef;
 
     Intent intent;
-    String groupID;
+    String groupID,currentUserID;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -56,6 +62,7 @@ public class ViewGroupParticipants extends AppCompatActivity {
 
         rootRef= FirebaseDatabase.getInstance().getReference();
         userRef=FirebaseDatabase.getInstance().getReference().child("Users");
+        currentUserID= FirebaseAuth.getInstance().getCurrentUser().getUid();
 
         intent=getIntent();
         groupID=intent.getStringExtra("id");
@@ -75,7 +82,7 @@ public class ViewGroupParticipants extends AppCompatActivity {
 
                 final String usersIDs=getRef(position).getKey();
 
-                userRef.child(usersIDs).addValueEventListener(new ValueEventListener() {
+                userRef.child(usersIDs).addListenerForSingleValueEvent(new ValueEventListener() {
                     @Override
                     public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
 
@@ -136,5 +143,30 @@ public class ViewGroupParticipants extends AppCompatActivity {
             userStatus=itemView.findViewById(R.id.userstatusOrlastmessage);
             profileImage=itemView.findViewById(R.id.profile_image);
         }
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        status("online");
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        status("offline");
+    }
+
+    private void status(String status){
+        DatabaseReference reference=FirebaseDatabase.getInstance().getReference().child("Users").child(currentUserID);
+
+        SimpleDateFormat sdf=new SimpleDateFormat("dd/MM/yyyy HH:mm:ss", Locale.getDefault());
+        String currentDateTime=sdf.format(new Date());
+
+        HashMap<String ,Object> hashMap=new HashMap<>();
+        hashMap.put("currentStatus",status);
+        hashMap.put("lastSeenDate",currentDateTime);
+
+        reference.updateChildren(hashMap);
     }
 }

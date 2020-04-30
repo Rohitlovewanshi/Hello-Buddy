@@ -1,0 +1,100 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:background="#5EBCF3DD">
+
+    <RelativeLayout
+        android:id="@+id/topPanel"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+
+        <TextView
+            android:id="@+id/remoteUser"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_centerHorizontal="true"
+            android:text="Sample user"
+            android:textSize="28sp"
+            android:layout_marginTop="25dp"
+            android:background="@color/white"
+            android:textColor="@android:color/black"/>
+
+        <TextView
+            android:id="@+id/callState"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_centerHorizontal="true"
+            android:text="Incoming Voice Call"
+            android:textSize="16sp"
+            android:textAllCaps="true"
+            android:layout_below="@id/remoteUser"
+            android:layout_marginTop="10dp"
+            android:background="@color/white"
+            />
+
+    </RelativeLayout>
+
+    <ImageView
+        android:id="@+id/incoming_profile_image"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:contentDescription="Call background"
+        android:scaleType="fitXY">
+
+    </ImageView>
+
+    <RelativeLayout
+        android:id="@+id/bottomPanel"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="30dp">
+
+        <com.ebanx.swipebtn.SwipeButton
+            android:id="@+id/accept_swipe_btn"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="20dp"
+            android:layout_marginEnd="20dp"
+            android:layout_marginBottom="20dp"
+            android:layout_above="@id/reject_swipe_btn"
+            app:inner_text="Swipe to Accept"
+            app:inner_text_color="@android:color/black"
+            app:inner_text_size="19sp"
+            app:inner_text_bottom_padding="20dp"
+            app:inner_text_top_padding="20dp"
+            app:inner_text_background="@drawable/shape_rounded_for_accept"
+            app:button_image_disabled="@drawable/ic_call_black_24dp"
+            app:button_image_enabled="@drawable/ic_call_black_24dp"
+            app:button_left_padding="20dp"
+            app:button_right_padding="20dp"
+            app:button_top_padding="20dp"
+            app:button_bottom_padding="20dp"
+            app:button_background="@drawable/shape_button_for_accept" />
+
+        <com.ebanx.swipebtn.SwipeButton
+            android:id="@+id/reject_swipe_btn"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="20dp"
+            android:layout_marginEnd="20dp"
+            android:layout_marginTop="10dp"
+            android:layout_alignParentBottom="true"
+            app:inner_text="Swipe to Reject"
+            app:inner_text_color="@android:color/black"
+            app:inner_text_size="19sp"
+            app:inner_text_bottom_padding="20dp"
+            app:inner_text_top_padding="20dp"
+            app:inner_text_background="@drawable/shape_rounded_for_reject"
+            app:button_image_disabled="@drawable/ic_cancel_black_24dp"
+            app:button_image_enabled="@drawable/ic_cancel_black_24dp"
+            app:button_left_padding="20dp"
+            app:button_right_padding="20dp"
+            app:button_top_padding="20dp"
+            app:button_bottom_padding="20dp"
+            app:button_background="@drawable/shape_button_for_reject"/>
+
+    </RelativeLayout>
+
+</RelativeLayout>

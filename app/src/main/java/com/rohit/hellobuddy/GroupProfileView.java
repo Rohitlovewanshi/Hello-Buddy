@@ -49,6 +49,10 @@ import com.theartofdev.edmodo.cropper.CropImageView;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.Locale;
 
 import de.hdodenhof.circleimageview.CircleImageView;
 
@@ -63,6 +67,7 @@ public class GroupProfileView extends AppCompatActivity {
 
     DatabaseReference groupRef,userRef;
     StorageReference groupProfileImagesRef;
+    ValueEventListener listener1;
 
     ProgressDialog loadingBar;
     StorageTask uploadTask;
@@ -70,7 +75,7 @@ public class GroupProfileView extends AppCompatActivity {
     ProgressBar imageProgressBar;
 
     Intent intent;
-    String groupID;
+    String groupID,currentUserID;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -90,7 +95,6 @@ public class GroupProfileView extends AppCompatActivity {
 
         group_profile_image=findViewById(R.id.group_profile_image);
         edit_group_profile_picture=findViewById(R.id.set_group_profile_button);
-        progressBar=findViewById(R.id.progressbar);
         textViewGroupName=findViewById(R.id.display_group_name);
         textViewGroupStatus=findViewById(R.id.display_group_status);
         textViewParticipants=findViewById(R.id.txt_view_participants);
@@ -100,6 +104,7 @@ public class GroupProfileView extends AppCompatActivity {
 
         loadingBar=new ProgressDialog(GroupProfileView.this);
 
+        currentUserID=FirebaseAuth.getInstance().getCurrentUser().getUid();
         groupRef= FirebaseDatabase.getInstance().getReference().child("Groups");
         userRef=FirebaseDatabase.getInstance().getReference().child("Users");
         groupProfileImagesRef= FirebaseStorage.getInstance().getReference().child("Group Profile Images");
@@ -309,10 +314,9 @@ public class GroupProfileView extends AppCompatActivity {
 
     private void updateGroupDetails() {
 
-        groupRef.child(groupID).addValueEventListener(new ValueEventListener() {
+        listener1=new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
-
                 if (dataSnapshot.exists()) {
 
                     String groupPicture=dataSnapshot.child("image").getValue().toString();
@@ -331,6 +335,35 @@ public class GroupProfileView extends AppCompatActivity {
             public void onCancelled(@NonNull DatabaseError databaseError) {
 
             }
-        });
+        };
+
+        groupRef.child(groupID).addValueEventListener(listener1);
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        groupRef.child(groupID).removeEventListener(listener1);
+        status("offline");
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        groupRef.child(groupID).addValueEventListener(listener1);
+        status("online");
+    }
+
+    private void status(String status){
+        DatabaseReference ref1=FirebaseDatabase.getInstance().getReference().child("Users").child(currentUserID);
+
+        SimpleDateFormat sdf=new SimpleDateFormat("dd/MM/yyyy HH:mm:ss", Locale.getDefault());
+        String currentDateTime=sdf.format(new Date());
+
+        HashMap<String ,Object> hashMap=new HashMap<>();
+        hashMap.put("currentStatus",status);
+        hashMap.put("lastSeenDate",currentDateTime);
+
+        ref1.updateChildren(hashMap);
     }
 }
