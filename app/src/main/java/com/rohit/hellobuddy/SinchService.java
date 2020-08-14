@@ -51,9 +51,9 @@ import static com.rohit.hellobuddy.IncomingCallScreenActivity.ACTION_IGNORE;
 
 public class SinchService extends Service {
 
-    static final String APP_KEY = "809c1c3b-5110-415d-96bf-7bf6f51a33d4";
-    static final String APP_SECRET = "XNyqbBwy2ECExHi/iADkRw==";
-    static final String ENVIRONMENT = "clientapi.sinch.com";
+    static final String APP_KEY = "";  //add your keys
+    static final String APP_SECRET = "";
+    static final String ENVIRONMENT = "";
 
     public static final int MESSAGE_PERMISSIONS_NEEDED = 1;
     public static final String REQUIRED_PERMISSION = "REQUIRED_PESMISSION";
