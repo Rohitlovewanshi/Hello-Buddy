@@ -50,7 +50,7 @@
             android:id="@+id/input_number"
             android:background="#ffffff"
             android:padding="10dp"
-            android:maxLength="10"
+            android:maxLength="12"
             android:inputType="number"
             android:layout_marginStart="5dp"
             android:layout_marginEnd="30dp"
