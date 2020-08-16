@@ -39,7 +39,7 @@
             android:id="@+id/input_country_code"
             android:background="#ffffff"
             android:layout_width="50dp"
-            android:maxLength="3"
+            android:maxLength="4"
             android:inputType="number"
             android:padding="10dp"
             android:text="+91"
