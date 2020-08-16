@@ -69,18 +69,7 @@ public class LoginActivity extends AppCompatActivity {
                         return;
                     }
 
-                    if (number.length() != 10) {
-                        editTextNumber.setError("Invalid Number");
-                        editTextNumber.requestFocus();
-                        return;
-                    }
-
-                    if (countryCode.length() != 3) {
-                        editTextCountryCode.setError("Invalid Code");
-                        editTextCountryCode.requestFocus();
-                        return;
-                    }
-
+                    
                     String mobileNumber = countryCode + number;
 
                     Intent intent = new Intent(LoginActivity.this, OtpVerificationActivity.class);
